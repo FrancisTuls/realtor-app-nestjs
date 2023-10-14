@@ -12,6 +12,30 @@ interface GetHomesParam {
   propertyType?: PropertyType;
 }
 
+interface CreateHomeParam {
+  address: string;
+  numberOfBedrooms: number;
+  numberOfBathrooms: number;
+  city: string;
+  price: number;
+  landSize: number;
+  propertyType: PropertyType;
+  // An array of objects where each url is a string
+  images: { url: string }[];
+}
+
+interface UpdateHomeParam {
+  address?: string;
+  numberOfBedrooms?: number;
+  numberOfBathrooms?: number;
+  city?: string;
+  price?: number;
+  landSize?: number;
+  propertyType?: PropertyType;
+  // An array of objects where each url is a string
+  images?: { url: string }[];
+}
+
 export const homeSelect = {
   id: true,
   address: true,
@@ -80,5 +104,74 @@ export class HomeService {
     }
 
     return new HomeResponseDto(home);
+  }
+
+  async createHome(
+    {
+      address,
+      numberOfBedrooms,
+      numberOfBathrooms,
+      city,
+      landSize,
+      price,
+      propertyType,
+      images,
+    }: CreateHomeParam,
+    userId: number,
+  ) {
+    const home = await this.prisma.home.create({
+      data: {
+        address,
+        number_of_bathrooms: numberOfBathrooms,
+        number_of_bedrooms: numberOfBedrooms,
+        city,
+        land_size: landSize,
+        propertyType,
+        price,
+        realtor_id: userId,
+      },
+    });
+
+    const homeImages = images.map((image) => {
+      return { ...image, home_id: home.id };
+    });
+
+    await this.prisma.image.createMany({ data: homeImages });
+
+    return new HomeResponseDto(home);
+  }
+
+  async updateHomeById(id: number, data: UpdateHomeParam) {
+    const home = await this.prisma.home.findUnique({ where: { id } });
+
+    if (!home) {
+      throw new NotFoundException();
+    }
+
+    const updatedData = {
+      ...data,
+      images: data.images
+        ? {
+            updateMany: data.images.map((image) => ({
+              where: { url: image.url },
+              data: image,
+            })),
+          }
+        : undefined,
+    };
+
+    const updatedHome = await this.prisma.home.update({
+      where: { id },
+      data: updatedData,
+    });
+
+    return new HomeResponseDto(updatedHome);
+  }
+
+  async deleteHomeById(id: number) {
+    await this.prisma.image.deleteMany({ where: { home_id: id } });
+    await this.prisma.home.delete({
+      where: { id },
+    });
   }
 }
