@@ -1,5 +1,5 @@
 import { PropertyType } from '@prisma/client';
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
 import {
   IsString,
   IsNumber,
@@ -66,6 +66,8 @@ export class HomeResponseDto {
 }
 
 class Image {
+  @IsString()
+  @IsNotEmpty()
   url: string;
 }
 
@@ -99,6 +101,7 @@ export class CreateHomeDto {
 
   @IsArray()
   @ValidateNested({ each: true })
+  @Type(() => Image)
   images: Image[];
 }
 
