@@ -98,6 +98,7 @@ export class HomeController {
     return this.homeService.inquire(user, homeId, message);
   }
 
+
   @Roles(UserType.REALTOR)
   @Get('/:id/messages')
   async getHomeMessages(
