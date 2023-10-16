@@ -98,7 +98,7 @@ export class HomeController {
     return this.homeService.inquire(user, homeId, message);
   }
 
-  @Roles(UserType.BUYER)
+  @Roles(UserType.REALTOR)
   @Get('/:id/messages')
   async getHomeMessages(
     @Param('id', ParseIntPipe) id: number,
